@@ -1,0 +1,185 @@
+<% include topbar.ejs %>
+                <!-- START BREADCRUMB -->
+                <ul class="breadcrumb">
+<!--
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#">Pages</a></li>
+                    <li class="active">Address Book</li>
+-->
+                </ul>
+                <!-- END BREADCRUMB -->                                                
+                
+                <!-- PAGE TITLE -->
+
+                <!-- END PAGE TITLE -->                
+                
+                <!-- PAGE CONTENT WRAPPER -->
+                <div class="page-content-wrap">
+                    <div class="row" id="menu">
+                <div class="page-title">                    
+                    <h2><span class="fa fa-users"></span> Menu </small></h2>
+                </div>
+<style>
+
+.menu_selected{
+	border-width:10px;
+	border-style:groove;
+	border-color:ridge;
+}
+
+</style>
+
+<!--   START APPS MENU    -->
+                        <!-- APP ITEM -->
+                        <div class="col-md-2" class="app1">
+                            <div class="panel panel-default">
+                                <div id="app-cursor1" class="panel-body profile menu_selected" style="background:url(img/app/film/logo.png) center no-repeat;-webkit-background-size: cover; background-size: cover;height:200px!important;">
+									<div style="margin-top:55%">
+										<label style="margin-left:38%" class="btn btn-danger btn-rounded">START</label>
+									</div>
+								</div>
+                            </div>
+                        </div>
+                        <div class="col-md-2" class="app2">
+                            <div class="panel panel-default">
+                                <div id="app-cursor2" class="panel-body profile" style="background:url(img/app/settings/logo.jpg) center no-repeat;-webkit-background-size: cover; background-size: cover;height:200px!important;">
+									<div style="margin-top:55%">
+										<label style="margin-left:38%" class="btn btn-danger btn-rounded">START</label>
+									</div>
+								</div>
+                            </div>
+                        </div>
+                        <!-- END APP ITEM -->
+<!-- ADD NEW APPS :) -->
+                    </div>
+                </div>
+				<div class="row" id="apps-engine">
+
+
+
+
+
+
+
+
+				</div>
+                <!-- END PAGE CONTENT WRAPPER -->                                                 
+            </div>            
+            <!-- END PAGE CONTENT -->
+        </div>
+        <!-- END PAGE CONTAINER -->
+
+        <!-- MESSAGE BOX-->
+        <div class="message-box animated fadeIn" data-sound="alert" id="mb-signout">
+            <div class="mb-container">
+                <div class="mb-middle">
+                    <div class="mb-title"><span class="fa fa-sign-out"></span> Log <strong>Out</strong> ?</div>
+                    <div class="mb-content">
+                        <p>Are you sure you want to log out?</p>                    
+                        <p>Press No if youwant to continue work. Press Yes to logout current user.</p>
+                    </div>
+                    <div class="mb-footer">
+                        <div class="pull-right">
+                            <a href="pages-login.html" class="btn btn-success btn-lg">Yes</a>
+                            <button class="btn btn-default btn-lg mb-control-close">No</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- END MESSAGE BOX-->
+
+<!-- START PRELOADS -->
+        <audio id="audio-alert" src="audio/alert.mp3" preload="auto"></audio>
+        <audio id="audio-fail" src="audio/fail.mp3" preload="auto"></audio>
+<!-- END PRELOADS -->          
+        
+<!-- START SCRIPTS -->
+        <script type="text/javascript" src="js/plugins/jquery/jquery.min.js"></script>
+        <script type="text/javascript" src="js/plugins/jquery/jquery-ui.min.js"></script>
+        <script type="text/javascript" src="js/plugins/bootstrap/bootstrap.min.js"></script>        
+		<script type="text/javascript" src="js/plugins/blueimp/jquery.blueimp-gallery.min.js"></script>
+        <script type='text/javascript' src='js/plugins/icheck/icheck.min.js'></script>
+        <script type="text/javascript" src="js/plugins/mcustomscrollbar/jquery.mCustomScrollbar.min.js"></script>
+        <script type="text/javascript" src="js/settings.js"></script>
+        <script type="text/javascript" src="js/plugins.js"></script>        
+        <script type="text/javascript" src="js/actions.js"></script>        
+		<script src="http://www.w3schools.com/lib/w3data.js"></script>
+<!-- START END -->
+
+<!-- START APPS SCRIPTS -->
+<script type="text/javascript" src="js/list.js"></script>        
+<script type="text/javascript" src="js/main.js"></script>        
+<!-- END APPS SCRIPTS -->
+
+<script>
+$(document).ready(function() { 
+
+var socket = io();
+
+
+var appList = new list(2);
+
+var appLaunched = 0;
+
+socket.emit('service', 1);
+
+var app = 0;
+
+socket.on('gamepadEvent', function(data){
+		if (app == 0) {
+		  if (data.type == 0) {
+			if (data.key == "KEY_AXIS_X" && data.value == 1) {
+				console.log("KEY RIGHT");
+				var c = appList.getIndex();
+				var i = appList.next();
+				console.log('old index : ' + c + ' new index : ' + i);
+				var test = "#app-cursor" + i;
+				$("#app-cursor" + c).removeClass('menu_selected');
+				$(test).addClass('menu_selected');
+			}
+			if (data.key == "KEY_AXIS_X" && data.value == -1) {
+				console.log("KEY LEFT");
+				var c = appList.getIndex();
+				var i = appList.prev();
+				console.log('old index : ' + c + ' new index : ' + i);
+				var test = "#app-cursor" + i;
+				$("#app-cursor" + c).removeClass('menu_selected');
+				$(test).addClass('menu_selected');
+			}
+			if (data.key == "STICK[L]_AXIS_X" && data.value == 1) {
+					var c = appList.getIndex();
+					var i = appList.next();
+					console.log('old index : ' + c + ' new index : ' + i);
+					var test = "#app-cursor" + i;
+					$("#app-cursor" + c).removeClass('menu_selected');
+					$(test).addClass('menu_selected');
+			  }
+			  if (data.key == "STICK[L]_AXIS_X" && data.value == -1) {
+					var c = appList.getIndex();
+					var i = appList.next();
+					console.log('old index : ' + c + ' new index : ' + i);
+					var test = "#app-cursor" + i;
+					$("#app-cursor" + c).removeClass('menu_selected');
+					$(test).addClass('menu_selected');
+			  }
+		  }
+		  if (data.type == 1) {
+				if (data.key == "BUTTON_BOT" && data.value == 1 && appLaunched == 0) {
+					console.log('X KEY');
+					$("#apps-engine").load('film.html');
+					w3IncludeHTML();
+					$("#menu").hide('100');
+					appLaunched = 1;
+					app = new appFilm();
+				}
+		   }
+		} else if (app) {
+			app.main(data);
+		}
+});
+
+});
+</script>
+    </body>
+</html>

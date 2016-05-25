@@ -1,0 +1,188 @@
+<% include topbar.ejs %>
+                <!-- START BREADCRUMB -->
+                <ul class="breadcrumb">
+<!--
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#">Pages</a></li>
+                    <li class="active">Address Book</li>
+-->
+                </ul>
+                <!-- END BREADCRUMB -->                                                
+                <!-- PAGE CONTENT WRAPPER -->
+<style>
+
+.menu_selected{
+	border-width:5px;
+	border-style:groove;
+	border-color:ridge;
+}
+
+</style>
+
+<!-- app -->
+
+				<div class="row" id="apps-engine">
+
+
+<!-- START CONTENT FRAME -->
+<div class="content-frame">   
+
+<!-- START CONTENT FRAME TOP -->
+<div class="content-frame-top">                        
+<div class="page-title">                    
+<h2 id="app-film"><span class="fa fa-image"></span> Films </h2>
+</div>                                      
+</div>
+
+<style>
+.blueimp-gallery > .description, .blueimp-gallery > .example {
+  position: absolute;
+  top: 200px;
+  right: 250px;
+font-size:150%;
+width:500px;
+height:500px;
+  line-height: 1.8em;
+	text-overflow: ellipsis;
+  word-wrap: break-word;
+  color: #fff;
+  display: none;
+
+}
+.blueimp-gallery > .slides {
+	top:0px;
+}
+.blueimp-gallery-controls > .description, .blueimp-gallery-controls > .example {
+  display: block;
+}
+</style>
+
+
+<div class="gallery" id="gallery-films">
+
+<% for(var x = 0; x < topCpbFilm.length; x++) { %>
+
+
+<a id="filmId-<%= x %>" class="app-film gallery-item" data-description="<%= topCpbFilm[x].descr %>" href="<%= topCpbFilm[x].img %>" title="<%= topCpbFilm[x].name %>" data-gallery>
+<div class="image">                              
+<img src="<%= topCpbFilm[x].img %>" alt="<%= topCpbFilm[x].name %>" width=100 height=400/>                                        
+<ul class="gallery-item-controls">
+<li style="width:100px;">Resumer</li>
+<li style="width:100px">regarder</li>
+</ul>                                                                    
+</div>
+<div class="meta">
+<strong><%= topCpbFilm.name %></strong>
+<span><%= topCpbFilm.descr %></span>
+</div>                                
+</a>
+
+<% } %>
+</div>
+
+</div>       
+<!-- END CONTENT FRAME BODY -->
+</div>               
+<!-- END CONTENT FRAME -->
+
+
+</div>            
+<!-- END PAGE CONTENT -->
+</div>
+<!-- END PAGE CONTAINER -->
+
+<div id="blueimp-gallery" class="blueimp-gallery blueimp-gallery-controls">
+<div class="slides"></div>
+<h3 class="title"></h3>
+<a class="prev">‹</a>
+<a class="next">›</a>
+<a class="close">×</a>
+<p class="description"></p>
+<ol class="indicator"></ol>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+				</div>
+
+        <!-- MESSAGE BOX-->
+        <div class="message-box animated fadeIn" data-sound="alert" id="mb-signout">
+            <div class="mb-container">
+                <div class="mb-middle">
+                    <div class="mb-title"><span class="fa fa-sign-out"></span> Log <strong>Out</strong> ?</div>
+                    <div class="mb-content">
+                        <p>Are you sure you want to log out?</p>                    
+                        <p>Press No if youwant to continue work. Press Yes to logout current user.</p>
+                    </div>
+                    <div class="mb-footer">
+                        <div class="pull-right">
+                            <a href="pages-login.html" class="btn btn-success btn-lg">Yes</a>
+                            <button class="btn btn-default btn-lg mb-control-close">No</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- END MESSAGE BOX-->
+
+<!-- START PRELOADS -->
+        <audio id="audio-alert" src="audio/alert.mp3" preload="auto"></audio>
+        <audio id="audio-fail" src="audio/fail.mp3" preload="auto"></audio>
+<!-- END PRELOADS -->          
+        
+<!-- START SCRIPTS -->
+        <script type="text/javascript" src="js/plugins/jquery/jquery.min.js"></script>
+        <script type="text/javascript" src="js/plugins/jquery/jquery-ui.min.js"></script>
+        <script type="text/javascript" src="js/plugins/bootstrap/bootstrap.min.js"></script>        
+		<script type="text/javascript" src="js/plugins/blueimp/jquery.blueimp-gallery.min.js"></script>
+        <script type='text/javascript' src='js/plugins/icheck/icheck.min.js'></script>
+        <script type="text/javascript" src="js/plugins/mcustomscrollbar/jquery.mCustomScrollbar.min.js"></script>
+        <script type="text/javascript" src="js/settings.js"></script>
+        <script type="text/javascript" src="js/plugins.js"></script>        
+        <script type="text/javascript" src="js/actions.js"></script>        
+		<script src="http://www.w3schools.com/lib/w3data.js"></script>
+<!-- START END -->
+
+<!-- START APPS SCRIPTS -->
+<script type="text/javascript" src="js/list.js"></script>        
+<script type="text/javascript" src="js/main.js"></script>        
+<!-- END APPS SCRIPTS -->
+
+<script>
+$(document).ready(function() { 
+
+var socket = io();
+
+socket.emit('service', 1);
+
+
+var filmListLength = $('.app-film').length;
+var filmList = new list(filmListLength);
+
+
+console.log(filmListLength);
+
+var app = new appFilm();
+
+app.initGallery();
+
+socket.on('gamepadEvent', function(data){
+
+	app.main(data);
+
+});
+
+});
+</script>
+    </body>
+</html>

@@ -1,0 +1,77 @@
+<!-- START CONTENT FRAME -->
+<div class="content-frame">   
+
+<!-- START CONTENT FRAME TOP -->
+<div class="content-frame-top">                        
+<div class="page-title">                    
+<h2 id="app-film"><span class="fa fa-image"></span> Films </h2>
+</div>                                      
+</div>
+
+<style>
+.blueimp-gallery > .description, .blueimp-gallery > .example {
+  position: absolute;
+  top: 200px;
+  right: 250px;
+font-size:150%;
+width:500px;
+height:500px;
+  line-height: 1.8em;
+	text-overflow: ellipsis;
+  word-wrap: break-word;
+  color: #fff;
+  display: none;
+
+}
+.blueimp-gallery > .slides {
+	top:0px;
+}
+.blueimp-gallery-controls > .description, .blueimp-gallery-controls > .example {
+  display: block;
+}
+</style>
+
+
+<div class="gallery" id="gallery-films">
+
+<% for(var x = 0; x < topCpbFilm.length; x++) { %>
+
+
+<a id="link-<%= x %>" class="gallery-item" data-description="<%= topCpbFilm[x].descr %>" href="<%= topCpbFilm[x].img %>" title="<%= topCpbFilm[x].name %>" data-gallery>
+<div class="image">                              
+<img src="<%= topCpbFilm[x].img %>" alt="<%= topCpbFilm[x].name %>" width=100 height=400/>                                        
+<ul class="gallery-item-controls">
+<li style="width:100px;">Resumer</li>
+<li style="width:100px">regarder</li>
+</ul>                                                                    
+</div>
+<div class="meta">
+<strong><%= topCpbFilm.name %></strong>
+<span><%= topCpbFilm.descr %></span>
+</div>                                
+</a>
+
+<% } %>
+</div>
+
+</div>       
+<!-- END CONTENT FRAME BODY -->
+</div>               
+<!-- END CONTENT FRAME -->
+
+
+</div>            
+<!-- END PAGE CONTENT -->
+</div>
+<!-- END PAGE CONTAINER -->
+
+<div id="blueimp-gallery" class="blueimp-gallery blueimp-gallery-controls">
+<div class="slides"></div>
+<h3 class="title"></h3>
+<a class="prev">‹</a>
+<a class="next">›</a>
+<a class="close">×</a>
+<p class="description"></p>
+<ol class="indicator"></ol>
+</div>
+
