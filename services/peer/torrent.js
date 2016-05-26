@@ -128,19 +128,11 @@ peerflix.stdout.on('data', function(data) {
 	var file = path.join(dir, torrent.files[0].path);
 
 	var output = data.toString('utf8');
-
-	if (url = getUrl(data)) {
-//		url a envoyer au 
-		console.log('URL :: ' + url);
-	}
-	if (speed = getSpeed(data)) {
-//		vitesse de connection
-		console.log('vitess : ' + speed);
-	}
-	if (pourcentage = getPourcentage(file)) {
-//		% du fichier telecharger
-		console.log('ficher :: ' + pourcentage);
-	}
+	var obj = {};
+	obj.url = getUrl(data);
+	obj.speed = getSpeed(data);
+	obj.pourcentage = getPourcentage(file);
+	process.send(obj);
 });
 
 // TODO peerflix errors //

@@ -2,9 +2,8 @@
 a media box project in nodejs
 
 #TODO
+- Clean Front and Back code
 - LocalClient
 - Multiple controllers
-- Mulpliple client
-- Multpiple device
-- VPN apps
-- Cpb apps
+- Multpiple device & client
+- Vlc player app (clean code)

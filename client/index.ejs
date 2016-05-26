@@ -41,12 +41,6 @@
 <div class="content-frame">   
 
 <!-- START CONTENT FRAME TOP -->
-<div class="content-frame-top">                        
-<div class="page-title">                    
-<h2 id="app-film"><span class="fa fa-image"></span> Films </h2>
-</div>                                      
-</div>
-
 <style>
 .blueimp-gallery > .description, .blueimp-gallery > .example .button{
   position: absolute;
@@ -60,7 +54,6 @@ height:500px;
   word-wrap: break-word;
   color: #fff;
   display: none;
-
 }
 .blueimp-gallery > .slides {
 	top:0px;
@@ -74,12 +67,11 @@ height:500px;
 
 <% for(var x = 0; x < topCpbFilm.length; x++) { %>
 
-<a id="film-<%= x %>"class="app-film gallery-item" data-description="<%= topCpbFilm[x].descr %>" href="<%= topCpbFilm[x].img %>" title="<%= topCpbFilm[x].name %>" data-gallery>
+<a id="film-<%= x %>"class="app-film gallery-item" data-torrent="http://www.cpasbien.cm<%= topCpbFilm[x].torrentLink %>" data-description="<%= topCpbFilm[x].descr %>" href="<%= topCpbFilm[x].img %>" title="<%= topCpbFilm[x].name %>" data-gallery>
 <div class="image" >                              
 <img id="cursor-<%= x %>" src="<%= topCpbFilm[x].img %>" alt="<%= topCpbFilm[x].name %>" width=100 height=400/>                                        
 <ul class="gallery-item-controls" style="left:10px!important;top:90%!important;background-color:rgba(0, 0, 0, 0) !important">
-<button style="background-color:rgba(0, 0, 0, 1);color:white;border-width:0px!important"><img src="/img/ds4/button_bot.png" style="width:30px !important; height:30px !important"></img>regarder</button>
-<button style="background-color:rgba(0, 0, 0, 1);color:white;border-width:0px!important"><img src="/img/ds4/button_bot.png" style="width:30px !important; height:30px !important"></img>  </button>
+<button id="button-<%= x %>" style="background-color:rgba(0, 0, 0, 1);color:white;border-width:0px!important;display:none"><img src="/img/ds4/button_bot.png" style="width:30px !important; height:30px !important;"></img>regarder</button>
 </ul>
 <div>
 
@@ -112,41 +104,40 @@ height:500px;
 <p class="description">test</p>
 <ol class="indicator"></ol>
 </div>
+</div>
 
+<style>
 
+.preloaderBuff { position: fixed; left: 0; top: 0; z-index: 999; width: 100%; height: 100%; overflow: visible; background: #333 url('http://files.mimoymima.com/images/loading.gif') no-repeat center center; z-index:99999 !important; }
 
+</style>
 
+        <div id="vlc-player" class="message-box animated fadeIn" data-sound="alert" id="mb-signout">
+            <div class="mb-container" style="height:3000px !important;top:0% !important;">
+                <div class="mb-middle" style="top:5% !important">
+                    <div class="mb-title"><span class="fa fa-sign-out"></span><strong id="vlc-title"></strong></div>
+			<span>Downloading speed : <code id="streaming-rate"></code> </span>
+                    <div class="mb-content" style="height:500px !important;">
+<embed type="application/x-vlc-plugin" pluginspage="http://www.videolan.org" version="VideoLAN.VLCPlugin.2"  width="100%"  height="100%" id="vlc" autoplay="no">
+</embed>
+			<span>Duree : 
 
+<span id="vlc-curtime-h"></span> h <span id="vlc-curtime-mn"></span> mn <span id="vlc-curtime-sec"></span> s / 
+   <span id="vlc-maxtime-h"></span> h <span id="vlc-maxtime-mn"></span> mn <span id="vlc-maxtime-sec"></span> s
 
-
-
-
-
-
-
-
-				</div>
-
-        <!-- MESSAGE BOX-->
-        <div class="message-box animated fadeIn" data-sound="alert" id="mb-signout">
-            <div class="mb-container">
-                <div class="mb-middle">
-                    <div class="mb-title"><span class="fa fa-sign-out"></span> Log <strong>Out</strong> ?</div>
-                    <div class="mb-content">
-                        <p>Are you sure you want to log out?</p>                    
-                        <p>Press No if youwant to continue work. Press Yes to logout current user.</p>
+</span></br>
+			<code id="playerStatus"></code>
                     </div>
                     <div class="mb-footer">
                         <div class="pull-right">
-                            <a href="pages-login.html" class="btn btn-success btn-lg">Yes</a>
-                            <button class="btn btn-default btn-lg mb-control-close">No</button>
+                            <button class="btn btn-success btn-lg">FullScreen</button>
+                            <button class="btn btn-default btn-lg mb-control-close"><img src="/img/ds4/button_bot.png" style="width:30px !important; height:30px !important;">Pause / Play</button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <!-- END MESSAGE BOX-->
-
+        <!-- VLC-PLAYER -->
 <!-- START PRELOADS -->
         <audio id="audio-alert" src="audio/alert.mp3" preload="auto"></audio>
         <audio id="audio-fail" src="audio/fail.mp3" preload="auto"></audio>
@@ -168,18 +159,103 @@ height:500px;
 <!-- START APPS SCRIPTS -->
 <script type="text/javascript" src="js/list.js"></script>        
 <script type="text/javascript" src="js/main.js"></script>        
+<!-- TODO CLEAN THIS FUCKING FRONT CODE //
+<script type="text/javascript" src="js/vlc.js"></script>        
+-->
 <!-- END APPS SCRIPTS -->
 
 <script>
+
+// TODO REALLY FAST 
+// POINTEUR SUR FUNCTION POUR LES KEYSMAPS //
+
+function	Vlc(socket) {
+	self = this;
+	this.vlc = document.getElementById("vlc");
+	this.socket = socket;
+	this.running = 0;
+	this.url = 0;
+	this.FTkeys = [];
+	$("#playerStatus").text('chargement du streaming..');
+	this.initKeys = function() {
+		self.FTkeys['BUTTON_BOT'] = function(value) {
+			if (value == 1) {
+//				button pressed
+				if (self.vlc.playlist.isPlaying) {
+					self.vlc.playlist.togglePause();
+					$("#playerStatus").text('pause');
+				} else {
+					self.vlc.playlist.play();
+					$("#playerStatus").text('playing..');
+				}
+			}
+		}
+		self.FTkeys['BUTTON_RIGHT'] = function(value) {
+			if (value == 1) {
+//			button pressed
+				$("#vlc-player").hide();
+				self.vlc.playlist.stop();
+				self.socket.emit('swap-gamepad-event', {e : 'navFilmInput'});
+			}
+		}
+		self.FTkeys['KEY_AXIS_X'] = function(value) {
+			if (value == 1) {
+				self.vlc.input.rate *= 10 | 0;
+			} else if (value == -1) {
+				self.vlc.input.rate /= 10 | 0;
+			}
+			$("#playerStatus").text('playing speed x' + self.vlc.input.rate);
+		}
+	}
+	this.initKeys();
+	this.socket.on('speed', function(data){
+		$("#streaming-rate").text(data.speed + ' KB/S');
+		if (self.vlc.input.state == 3)
+			$("#playerStatus").text('playing speed x' + self.vlc.input.rate);
+		if (self.vlc.input.length) {
+			var milliseconds = self.vlc.input.length;
+			var hours = ((milliseconds / (1000*60*60)) % 24);
+			var mn = ((milliseconds / (1000*60)) % 60);
+			var sec = (milliseconds / 1000) % 60;
+			$("#vlc-maxtime-h").text(hours | 0);
+			$("#vlc-maxtime-mn").text(mn | 0);
+			$("#vlc-maxtime-sec").text(sec | 0);
+		}
+		var milliseconds = self.vlc.input.time;
+		var hours = ((milliseconds / (1000*60*60)) % 24);
+		var mn = ((milliseconds / (1000*60)) % 60);
+		var sec = (milliseconds / 1000) % 60;
+		$("#vlc-curtime-h").text(hours | 0);
+		$("#vlc-curtime-mn").text(mn | 0);
+		$("#vlc-curtime-sec").text(sec | 0);
+	});
+	this.socket.on('url', function(data) {
+		$("#vlc-title").text(data.title);
+		var options = new Array(":aspect-ratio=4:3");
+		self.id = self.vlc.playlist.add(data.url, 'film', options);
+		self.vlc.playlist.playItem(self.id);
+		// autoPlay //
+	});
+	this.main = function(data) {
+		if (typeof this.FTkeys[data.key] == 'function')
+			this.FTkeys[data.key](data.value);
+	}
+}
+
 $(document).ready(function() { 
 
 var socket = io();
 
 socket.emit('service-gamepad', 1);
-var app = new appFilm();
-app.init();
-socket.on('gamepadInput', function(data){
-	app.main(data);	
+var appfilm = new appFilm(socket);
+var appvlc = new Vlc(socket);
+appfilm.init();
+socket.on('navFilmInput', function(data){
+	appfilm.main(data);	
+});
+
+socket.on('gamepad-vlc', function(data){	
+	appvlc.main(data);
 });
 
 /*

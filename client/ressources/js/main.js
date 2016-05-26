@@ -1,5 +1,6 @@
-function	appFilm(  ) {	
+function	appFilm(socket) {	
 //	CLIENT SIDE APPS FILM 
+	this.socket = socket;
 	var nodes = $('.gallery-item');
 	var itemsList = new list(nodes.length);
 	this.init = 0;
@@ -9,6 +10,7 @@ function	appFilm(  ) {
 	this.init = function() {
 //		init apps
 		$('#cursor-' + this.index).addClass('menu_selected');
+		$('#button-' + this.index).show();
 	}
 	this.cursor = function(value) {
 //		Cursor moves
@@ -19,11 +21,15 @@ function	appFilm(  ) {
 			this.index = itemsList.next();
 			$("#cursor-" + oldIndex).removeClass('menu_selected');
 			$("#cursor-" + this.index).addClass('menu_selected');
+			$('#button-' + oldIndex).hide(100);
+			$('#button-' + this.index).show(100);
 		} else {
 			oldIndex = itemsList.getIndex();
 			this.index = itemsList.prev();
 			$("#cursor-" + oldIndex).removeClass('menu_selected');
 			$("#cursor-" + this.index).addClass('menu_selected');
+			$('#button-' + oldIndex).hide(100);
+			$('#button-' + this.index).show(100);
 		}
 		if (this.index % 4) {
 			var page = $("#film-" + this.index);
@@ -76,12 +82,15 @@ function	appFilm(  ) {
 		} else {
 			if (data.key == 'BUTTON_BOT') {
 				if (data.value == 1) {
-					this.startGallery();
+					var torrent = $("#film-" + this.index).attr('data-torrent');
+					this.socket.emit('start-torrent-streaming', torrent);
+					$("#vlc-player").show(100);
 				}
 			}
 			if (data.key == 'BUTTON_RIGHT') {
 				if (data.value == 1) {
 					this.gallery.close();
+					this.gallery = null;
 				}
 			}
 		}

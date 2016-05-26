@@ -18,6 +18,7 @@ process.setMaxListeners(0);
 app.get('/', function(req, res, next){
 	var tmp = fs.readFileSync(__dirname + '/apps/film/cache/cpbTop.data');
 	var topCpbFilm = JSON.parse(tmp.toString());
+	console.log(topCpbFilm)
 	res.render('index', {topCpbFilm: topCpbFilm});
 });
 

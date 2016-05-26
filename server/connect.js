@@ -2,6 +2,7 @@ var RoomsClass = require('../api/rooms.js');
 var fork = require('child_process').fork;
 var path = require('path');
 var serviceDir = path.join(__dirname, '../services/');
+var torrentDir = path.join(__dirname, '../torrents/');
 console.log('exe path: ' + serviceDir);
 // Manage Threads //
 
@@ -18,7 +19,6 @@ function	Thread(name, path, args, type, debug) {
 
 Thread.prototype.listenMessage = function(callback) {
 	this.process.on('message', function(data) {
-		console.log(data);
 		callback(data);
 	});
 }
@@ -62,8 +62,13 @@ Threads.prototype.getThreadByName = function(name) {
 // gamepad.on('down | up ') value keys
 // 1 -> X
 
+var http = require('http');
+var fs = require('fs');
+
+
 function	GamepadService(threads, room) {
-	this.room = room
+	this.room = room;
+	this.e = "nothing";
 	this.thread = threads.getThreadByName('gamepad-service');
 	if (!this.thread)
 		this.thread = threads.run('gamepad-service', path.join(serviceDir, '/gamepad/gamepad.js'), {}, 1);
@@ -71,14 +76,61 @@ function	GamepadService(threads, room) {
 		self = this;
 		this.thread.listenMessage(function(data) {
 			if (self.room) {
-				self.room.sendData('gamepadInput', data); // send input From gamepads //
+				self.room.sendData(self.e, data); // send input From gamepads //
 			}
 		});
 	}
 	this.updateRoom = function(room) {
 		this.room = room;
 	}
+	this.updateE = function(e) {
+		this.e = e;
+	}
 }
+
+var download = function(url, dest, cb) {
+	var file = fs.createWriteStream(dest);
+	var request = http.get(url, function(response) {
+		response.pipe(file);
+		console.log('downloading file : ' + dest);
+		file.on('finish', function() {
+			file.close(cb(null, dest));  // close() is async, call cb after close completes.
+		}).on('error', function(e){
+			cb(e);
+		});
+	});
+}
+
+function	torrentStreaming(threads, room, torrent) {
+	var torrentName = torrent.split('/')[4];
+	var torrentPath = path.join(__dirname, '../torrents/' + torrentName);
+	console.log('torrent name : ' + torrentName);
+	console.log('torrent path : ' + torrentPath)
+	if (!fs.existsSync(torrentPath)) {
+		download(torrent, torrentPath, function(err, dest) {
+			if (err) {
+				console.log('error while downloading .torrent..');
+				// emit erro to clients //
+			} else {
+				var args = [dest];
+				var thread = threads.run('peerflix-' + torrentName, path.join(__dirname, '../services/peer/torrent.js'), args, 0);
+				var self = room;
+				thread.listenMessage(function(data){
+					if (data.url) {
+						console.log('sendingDataUrl');
+						self.sendData('url', {url:data.url, title:torrentName.split('.torrent')[0]});
+					}
+					if (data.speed) {
+						self.sendData('speed', {speed:data.speed.split('KB\/s')[0]});
+					}
+				});
+			}
+		});
+	} else {
+		//resume download there 
+	}
+}
+
 
 module.exports = function(io) {
 //	core input service
@@ -93,8 +145,20 @@ module.exports = function(io) {
 //			User request gamePad event //
 			gamepadRoom.addSocket(socket);
 			gamepadService.updateRoom(gamepadRoom);
+			gamepadService.updateE('navFilmInput');
 			console.log('room updated');
 			console.log(rooms);
+		});
+		socket.on('swap-gamepad-event', function(data){
+			gamepadService.updateE(data.e);
+		});
+		socket.on('start-torrent-streaming', function(torrentUrl) {
+			var torrentRoom = rooms.addRoom('torrent-streaming');
+			torrentRoom.addSocket(socket);
+			console.log('stream torrent requested for');
+			console.log(torrentUrl);
+			gamepadService.updateE('gamepad-vlc');
+			torrentStreaming(threads, torrentRoom, torrentUrl);
 		});
 		socket.on('disconnect', function() {
 			rooms.closeClient(this);
