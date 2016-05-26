@@ -1,50 +1,54 @@
-var gamepad = require('../api/gamepad.js');
+var RoomsClass = require('../api/rooms.js');
+var fork = require('child_process').fork;
+var path = require('path');
+var serviceDir = path.join(__dirname, '../services/');
+console.log('exe path: ' + serviceDir);
+// Manage Threads //
 
-
-// gamepad button //
-// -- move --
-// [6][1] fleche de droite ->
-// [6][-1] fleche de gauche <-
-
-Object.defineProperty(Array.prototype, "removeItem", {
-    enumerable: false,
-    value: function (itemToRemove) {
-        var filteredArray = this.filter(function(item){
-            return item !== itemToRemove;
-        });
-        return filteredArray;
-    }
-});
-
-function	Room(name, type) {
-	this.sockets = [];
+function	Thread(name, path, args, type, debug) {
 	this.name = name;
+	this.path = path;
 	this.type = type;
-	this.sendData = function(e, data) {
-		for (var x in this.sockets) {
-			this.sockets[x].emit(e, data);
-		}
+	this.process = fork(path, args);
+	this.debug = debug;
+	this.state = 1;
+	if (this.debug)
+		console.log('starting process : ' + this.name);
+}
+
+Thread.prototype.listenMessage = function(callback) {
+	this.process.on('message', function(data) {
+		console.log(data);
+		callback(data);
+	});
+}
+
+function	Threads(debug) {
+	this.debug = debug;
+	this.threads = [];
+}
+
+Threads.prototype.run = function(name, path, args, type) {
+	var thread = new Thread(name, path, args, type, this.debug);
+	this.threads.push(thread);
+	if (this.debug)
+		console.log('thread added in list');
+	return (thread);
+}
+
+Threads.prototype.getThreadByName = function(name) {
+	for (var i in this.threads) {
+		if (this.threads[i].name == name)
+			return (this.threads[i]);
 	}
-	console.log("Room \"" + this.name + "\" has been created");
-}
-  
-Room.prototype.addSocket = function(socket) {
-	this.sockets.push(socket)
-	console.log('socket added [' + this.sockets.length + ']');
-};
-
-Room.prototype.removeSocket = function(socket) {
-	this.sockets = this.sockets.removeItem(socket);
-	console.log('socket deleted [' + this.sockets.length + ']');
+	return (0);
 }
 
-Room.prototype.getName = function() {
-	return (this.name);
-}
+// TODO CREATE THREAD CLASS //
+// TODO IMPLEMENT LOCALCLIENT CLASS TO ROOMS//
+// START SERVICES FOR CLIENTS
+// START APPS FOR CLIENT //
 
-Room.prototype.getSockets = function() {
-	return (this.sockets);
-}
 // gamepad.on('move') axis keys 
 // 6 -> KEY left and right
 // 7 -> KEY top and bot
@@ -58,55 +62,43 @@ Room.prototype.getSockets = function() {
 // gamepad.on('down | up ') value keys
 // 1 -> X
 
-
-// I should create a thread for that, and kill it if user is disconnected
-// that should prevent multiple call of gamepadEnvent.
-
-Room.prototype.gamepad = function() {
-	 self = this;
-	 var gamepadAPI = new gamepad();
-	 var keys = gamepadAPI.getKeys();
-	 
-	 self.sendData("gamepadEvent-KEYSMAP", {keys:keys});
-	 gamepadAPI.Input(function(type, key, value) {
-		self.sendData("gamepadEvent", {type:type, key:key, value:value});
-	 });
-}
-
-function	freeClient(rooms, socket) {
-	console.log('deleting socket from rooms');
-	for (var i in rooms) {
-		rooms[i].removeSocket(socket);
-		if (!rooms[i].getSockets().length) {
-			console.log('room empty deleting room : ' + rooms[i].getName());
-			if (rooms[i].getName() == 'gamepad') {
-				// free ? gamepad.shutdown()
+function	GamepadService(threads, room) {
+	this.room = room
+	this.thread = threads.getThreadByName('gamepad-service');
+	if (!this.thread)
+		this.thread = threads.run('gamepad-service', path.join(serviceDir, '/gamepad/gamepad.js'), {}, 1);
+	this.run = function(on) {
+		self = this;
+		this.thread.listenMessage(function(data) {
+			if (self.room) {
+				self.room.sendData('gamepadInput', data); // send input From gamepads //
 			}
-			delete rooms[i];
-			rooms = rooms.removeItem(rooms[i]);
-		}
+		});
 	}
-	return (rooms);
+	this.updateRoom = function(room) {
+		this.room = room;
+	}
 }
 
 module.exports = function(io) {
-	var	rooms = [];
+//	core input service
+	var rooms = new RoomsClass.Rooms(1); // room for clients //
+	var threads = new Threads(1); // Threads List for apps //
+	var gamepadRoom = rooms.addRoom('gamepad');
+	var gamepadService = new GamepadService(threads, gamepadRoom);
+	gamepadService.run();
+//
 	io.on('connection', function(socket) {
-	// everytime a user is connected this function is call //
-	// first we detect what controller he want use //
-		console.log('a user connected');
-		socket.on('service', function(i) {
-			if (i == 1) {
-				var tmp = new Room('gamepad', 1);
-				tmp.addSocket(socket);
-				tmp.gamepad();
-				console.log("gamepad actived");
-				rooms.push(tmp);
-			}
+		socket.on('service-gamepad', function(i) {
+//			User request gamePad event //
+			gamepadRoom.addSocket(socket);
+			gamepadService.updateRoom(gamepadRoom);
+			console.log('room updated');
+			console.log(rooms);
 		});
 		socket.on('disconnect', function() {
-			rooms = freeClient(rooms, this);
-			console.log("Room activated :");
+			rooms.closeClient(this);
+			console.log('client disconnected || rooms updated ');
 			console.log(rooms);
 		});
 	});

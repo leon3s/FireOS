@@ -3,35 +3,38 @@ function	appFilm(  ) {
 	var nodes = $('.gallery-item');
 	var itemsList = new list(nodes.length);
 	this.init = 0;
-	this.gallery;
+	this.gallery = 0;
 	this.galleryState = 0;
-	this.index = 1;
+	this.index = 0;
 	this.init = function() {
 //		init apps
-		this.initGallery();
-		$('#filmId-1').addClass('menu_selected');
+		$('#cursor-' + this.index).addClass('menu_selected');
 	}
 	this.cursor = function(value) {
 //		Cursor moves
 //		TODO scroll with items;
 		var oldIndex;
-		var newIndex;
 		if (value) {
 			oldIndex = itemsList.getIndex();
-			newIndex = itemsList.next();
-			$("#filmId-" + c).removeClass('menu_selected');
-			$("#filmId-" + this.index).addClass('menu_selected');
+			this.index = itemsList.next();
+			$("#cursor-" + oldIndex).removeClass('menu_selected');
+			$("#cursor-" + this.index).addClass('menu_selected');
 		} else {
 			oldIndex = itemsList.getIndex();
-			newIndex = itemsList.prev();
-			$("#filmId-" + c).removeClass('menu_selected');
-			$("#filmId-" + this.index).addClass('menu_selected');
+			this.index = itemsList.prev();
+			$("#cursor-" + oldIndex).removeClass('menu_selected');
+			$("#cursor-" + this.index).addClass('menu_selected');
 		}
-		return (newIndex);
+		if (this.index % 4) {
+			var page = $("#film-" + this.index);
+			var speed = 300; // Durée de l'animation (en ms)
+			$('html, body').animate( { scrollTop: $(page).offset().top - 50 }, speed ); // Go
+		}
+		return (this.index);
 	}
-	this.initGallery = function() {
+	this.startGallery = function() {
 //		Init blueImp gallery 
-		var links = $("#gallery-film").find('a');
+		var links = $("#gallery-films").find('a');
 		options = {
 			onslide: function (index, slide) {
 				self = this;
@@ -55,25 +58,36 @@ function	appFilm(  ) {
 		if (data.type == 0) {
 			if (data.key == 'KEY_AXIS_X') {
 				if (data.value == 1) {
-					if (this.galleryState) {
+					if (this.gallery) {
 						// move gallery nodes;
+						this.gallery.next();
 					} else {
 						// mode items nodes;
 						this.index = this.cursor(1);
 					}
 				} else if (data.value == -1) {
-					if (this.galleryState) {
-						
+					if (this.gallery) {
+						this.gallery.prev();
 					} else {
 						this.index = this.cursor(0);
 					}
+				}
+			}
+		} else {
+			if (data.key == 'BUTTON_BOT') {
+				if (data.value == 1) {
+					this.startGallery();
+				}
+			}
+			if (data.key == 'BUTTON_RIGHT') {
+				if (data.value == 1) {
+					this.gallery.close();
 				}
 			}
 		}
 	}
 }
 
-/*
 
 $(document).ready(function(){
 	if ($("#app-film").length) {
@@ -97,12 +111,8 @@ $(document).ready(function(){
 					initializeAdditional(index, 'data-description', '.description', self);
 					//	initializeAdditional(index, 'data-example', '.example', self);
 				}
-			},
-			links = this.getElementsByTagName('a');
-			ret = blueimp.Gallery(links, options);
-			console.log(ret);
-			return (ret);
+			};
+			blueimp.Gallery(link, options);
 		};
 	}
 });
-*/
